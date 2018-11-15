@@ -1,4 +1,5 @@
 
+#----------------------------------------------------------------------------
 # TASK 1:
 # transport table voters_addresses from MySql into HDFS folder /user/cloudera/cca1 as a snappy compressed Avro file 
 
@@ -13,10 +14,9 @@ sqoop import \
 --as-avrodatafile;
 
 
-
+#----------------------------------------------------------------------------
 # TASK 2:
 # transport table voters_addresses from MySql into HDFS folder /user/cloudera/cca2 as a snappy compressed sequence file 
-
 sqoop import \
 --connect "jdbc:mysql://quickstart.cloudera:3306/elections2018" \
 --username elections_admin \
@@ -28,6 +28,7 @@ sqoop import \
 --as-sequencefile;
 
 
+#----------------------------------------------------------------------------
 # TASK 3:
 # transport table voters_addresses from MySql into HDFS folder /user/cloudera/cca3 as a gzip compressed text file
 # gzip is default codec, and textfile is also a default option
@@ -41,6 +42,7 @@ sqoop import \
 --target-dir /user/cloudera/cca3;
 
 
+#----------------------------------------------------------------------------
 # TASK 4:
 # transport table voters_addresses from MySql into HDFS folder /user/cloudera/cca4 as regular,
 # uncompressed text file and delimit colums with hash character (#)
@@ -63,6 +65,7 @@ sqoop import \
 --fields-terminated-by '#';
 
 
+#----------------------------------------------------------------------------
 # TASK 5:
 # transport table voters_addresses from MySql into HDFS folder intended for HIVE tables with name voters_addresses.db
 # result should be cbzip2c compressed avro file.
@@ -83,7 +86,7 @@ sqoop import \
 hdfs dfs -ls /user/hive/warehouse/voters_addresses.db
 
 
-
+#----------------------------------------------------------------------------
 # TASK 6:
 # transport table voters_addresses from MySql into HDFS folder /user/cloudera/cca6 as regular text file.
 # delimit the fileds with tab \t.
@@ -105,6 +108,7 @@ sqoop import \
 hdfs dfs -cat /user/cloudera/cca6/part-m-00000 | head
 
 
+#----------------------------------------------------------------------------
 # TASK 7:
 # import only four columns (ZUPANIJA_NAZIV,NASELJE_NAZIV,ULICA_NAZIV,BROJ_BIRACA) from the table voters_addresses
 # from MySql into HDFS folder /user/cloudera/cca7 as regular text file.
@@ -124,6 +128,7 @@ sqoop import \
 hdfs dfs -cat /user/cloudera/cca7/part-m-00000 | head
 
 
+#----------------------------------------------------------------------------
 # TASK 8:
 # transport table voters_addresses from MySql into HDFS folder /user/cloudera/cca8 as parquet file.
 # do not specify column or line delimiters
@@ -142,6 +147,7 @@ sqoop import \
 hdfs dfs -ls /user/cloudera/cca8
 
 
+#----------------------------------------------------------------------------
 #TASK 9:
 # transport only rows that have 'ZADAR' as value for GROP_NAZIV from table voters_addresses in MySql into HDFS folder 
 # /user/cloudera/cca9 as a regular text file
@@ -159,9 +165,11 @@ sqoop import \
 hdfs dfs -cat /user/cloudera/cca9/part-m-00000 | head
 
 
+#----------------------------------------------------------------------------
 # TASK 10
-# speed up data transportation from table voters_addresses in MySql into HDFS folder /user/cloudera/cca10 as a regular text file
-# 
+# speed up data transportation from table voters_addresses in MySql into HDFS folder
+# /user/cloudera/cca10 as a regular text file
+# do not set any other parameters
 sqoop import \
 --connect "jdbc:mysql://quickstart.cloudera:3306/elections2018" \
 --username elections_admin \
@@ -170,12 +178,48 @@ sqoop import \
 --target-dir /user/cloudera/cca10 \
 --direct
 
+# verify output:
+hdfs dfs -ls /user/cloudera/cca10/
 
-
-
-
---null-non-string -1000 \
+#----------------------------------------------------------------------------
+# TASK 11
+# transport data from voters_addresses in MySql to HDFS folder /user/cloudera/cca11 as a regular text file.
+# replace null values in numeric columns with zero, and in text columns with 'NA'
+# set parallelism to 1 
+sqoop import \
+--connect "jdbc:mysql://quickstart.cloudera:3306/elections2018" \
+--username elections_admin \
+--password batman \
+--table voters_addresses \
+--target-dir /user/cloudera/cca11 \
+--null-non-string -0 \
 --null-string "NA" \
+--autoreset-to-one-mapper
 
---hive-import
+# verify output:
+hdfs dfs -cat /user/cloudera/cca11/part-m-00000 | head
+# since there is no null values in this dataset, --null-non-string and --null-string will not have any effect
 
+
+#----------------------------------------------------------------------------
+# TASK 12
+# transport data from voters_addresses in MySql to Hive
+sqoop import \
+--connect "jdbc:mysql://quickstart.cloudera:3306/elections2018" \
+--username elections_admin \
+--password batman \
+--table voters_addresses \
+--hive-import \
+--hive-drop-import-delims
+
+
+#----------------------------------------------------------------------------
+# TASK 13
+# transport data from voters_addresses in MySql to HBase
+sqoop import \
+--connect "jdbc:mysql://quickstart.cloudera:3306/elections2018" \
+--username elections_admin \
+--password batman \
+--table voters_addresses \
+--hbase-table voters_addresses \
+--column-family locations
